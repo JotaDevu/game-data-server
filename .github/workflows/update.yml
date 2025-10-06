@@ -1,37 +1,31 @@
-name: Update data.txt automatically
+name: Update data.txt every hour
 
 on:
   schedule:
-    - cron: '0 * * * *'   # cada hora
-  workflow_dispatch:
-
-permissions:
-  contents: write
+    - cron: "0 * * * *" # cada hora
+  workflow_dispatch: # ejecución manual opcional
 
 jobs:
-  update:
+  update-file:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Generate new date file
+      - name: Update data.txt with current time
         run: |
-          NOW_UTC=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          echo "$NOW_UTC" > data.txt
+          echo "Last update: $(date -u)" > data.txt
 
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data.txt
-          
-          # Solo hace commit si hay cambios
-          if git diff --cached --quiet; then
-            echo "No hay cambios nuevos, no se requiere commit."
-          else
-            git commit -m "Updated date: $NOW_UTC" || echo "Sin cambios que guardar."
-            git push || echo "No se pudo hacer push (probablemente sin cambios)."
-          fi
-
-          echo "Workflow completado sin errores."
+          git commit -m "Automated update at $(date -u)" || echo "No changes to commit"
+          git push
+        env:
+          GIT_COMMITTER_NAME: "github-actions[bot]"
+          GIT_COMMITTER_EMAIL: "github-actions[bot]@users.noreply.github.com"
