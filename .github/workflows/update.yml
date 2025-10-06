@@ -20,7 +20,7 @@ jobs:
 
       - name: Generate data.txt
         run: |
-          echo "Last update: $(date -u)" > data.txt
+          echo "$(date -u)" > data.txt
 
       - name: Commit and push changes
         run: |
